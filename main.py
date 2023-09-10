@@ -8,7 +8,8 @@ import csv
 import json
 import main
 
-bot_token = 'MTE0OTQwNDY2NDc5NDczMDU3Nw.GoApm_.KxhELGz-XcsYThbvMBzGBL8rcc4vR0_fzIlOD8'
+with open('key.txt') as keyfile:
+    bot_token = keyfile.read()
 
 description = '''Bot koji broji ko koliko psuje. 
 Iskoristi komandu: '?Ko je najveci majmun' da dobijes spisak psovaca.'''
