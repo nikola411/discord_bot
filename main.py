@@ -43,14 +43,16 @@ update_special_counter = 0
 
 with open(latin_dict_file, newline='') as csvfile:
     allowed_words = [row for row in csv.reader(csvfile, delimiter=',')][0]
-with open(authors_dict_file) as f:
+with open(authors_dict_file, encoding='UTF-8') as f:
     authors = json.load(f)
 with open(special_event_file, encoding='UTF-8') as f:
     special_events = json.load(f)
 with open(special_counter_file, encoding='UTF-8') as f:
     special_counter = json.load(f)
 
-def register_curse_words(word: str, author: str):
+register_counter = 0
+
+def register_curse_words(word: str, author: str) -> None:
     if author in forbidden_words: return
     if word in forbidden_words: return
     word = word.lower()
@@ -62,6 +64,8 @@ def register_curse_words(word: str, author: str):
             break
     if not is_cursing: return
 
+    global register_counter
+
     for wrd in word.split(' '):
         if wrd not in allowed_words: continue
         if authors.get(author) is None:
@@ -70,22 +74,36 @@ def register_curse_words(word: str, author: str):
             authors[author] = dict()
         if authors[author].get(wrd) is None:
             authors[author][wrd] = 1
+            register_counter += 1
         else:
             authors[author][wrd] += 1
+            register_counter += 1
     
-    update_authors()
+    if register_counter == 10:
+        register_counter = 0
+        update_authors()
 
-def prepare_output() -> str:
-    out = '```'
+def prepare_output() -> discord.Embed:
+    out = '**Ko najvise psuje ovde? **\n'
+    curse_cnt = []
     for key in authors.keys():
         author = authors[key]
-        out += 'Autor: ' + key + '\n'
+        data = ''
+        data += 'Autor: **' + key + '**' + '\n['
+        sum = 0
         for curse in author:
-            out += '  ' + curse  + ' : '
-            out += str(author[curse])
-            out += '\n'
-        out += '\n'
-    out += '```'
+            data += '  ' + curse  + ' : '
+            data += str(author[curse])
+            sum += author[curse]
+
+        data += ' ]\n'
+        data += 'Ukupno psovki: **' + str(sum) + '**\n'
+        data = '{:30}'.format(data)
+        curse_cnt.append((key, sum))
+        out += data
+
+    sorted_cnt = sorted(curse_cnt, key=lambda autor: autor[1], reverse=True)
+    out += '\nPobednik: ' + str(sorted_cnt[0][0])
     return out
 
 def add_curse_words(words) -> None:
@@ -97,13 +115,16 @@ def add_curse_words(words) -> None:
         writer = csv.writer(csvfile)
         writer.writerow(allowed_words)
 
-def remove_curse_words(words):
+def remove_curse_words(words) -> None:
     for word in words:
         if word in allowed_words:
             allowed_words.remove(word)
+        for key in authors.keys():
+            if word in authors[key].keys():
+                del authors[key][word]
 
 def update_authors() -> None:
-    with open(authors_dict_file, 'w') as f:
+    with open(authors_dict_file, 'w', encoding='UTF-8') as f:
         f.write(str(authors).replace('\'', '\"'))
 
 commands = {
@@ -135,6 +156,16 @@ async def handle_special(message: discord.message):
     out.set_image(url=spec_pair["img"])
     await message.channel.send(embed=out)
 
+async def tuta_special(message: discord.message):
+    msg = str(message.content).split(' ')
+    do_reply = False
+    for word in ['жена', 'жене', 'жени', 'курви','курве', 'кучке']:
+        if word in msg:
+            do_reply = True
+            break
+    if do_reply:
+        await message.channel.send(UPOZORENJE_1)
+
 @bot.event
 async def on_message(message: discord.message):   
     if str(message.content).startswith('/'):
@@ -142,14 +173,16 @@ async def on_message(message: discord.message):
     else:
         if message.content.lower() in special_events.keys():
             await handle_special(message)
+        elif str(message.author) == 'tuta6696':
+            await tuta_special(message)
         register_curse_words(str(message.content), str(message.author)) 
 
 @bot.command(name='/jebaci')
 async def special_count(ctx):
     out = discord.Embed(title="Ko je najvise onaj sto sam te jebao", description="")
     value = ''
-    for item in special_counter.items():
-        value += '**' + item[0] + '** : ' + str(item[1]) + '\n'
+    for item in sorted(special_counter.items()):
+        value += '**{}** : {} \n'.format(item[0], item[1])
     out.add_field(name='', value=value)
     await ctx.send(embed=out)
   
