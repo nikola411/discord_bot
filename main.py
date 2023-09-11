@@ -1,35 +1,54 @@
-import requests
-import pandas as pd
-
 import discord
 from discord.ext import commands
-import random
 import csv
 import json
 import main
+from message import *
 
-with open('key.txt') as keyfile:
+bot_token_file = 'key.txt'
+latin_dict_file = './db/dict_latin.txt'
+authors_dict_file = './db/authors.json'
+command_dict_file = './db/commands.json'
+special_event_file = './db/special_events.json'
+special_counter_file = './db/special_counter.json'
+
+""" Init bot """
+
+with open(bot_token_file) as keyfile:
     bot_token = keyfile.read()
-
-description = '''Bot koji broji ko koliko psuje. 
-Iskoristi komandu: '?Ko je najveci majmun' da dobijes spisak psovaca.'''
-
+description = '''Bot koji broji ko koliko psuje i jos po nesto.'''
 intents = discord.Intents.default()
 intents.members = True
 intents.message_content = True
 
 bot = commands.Bot(command_prefix='', description=description, intents=intents)
 
+""" Init files and structures """
+
+forbidden_words = {'Psovkobrojac BOT', 'Psovkobrojac BOT#9107' ,'?Ko je najveci majmun', '?Коя е най-голямата маймуна?'}
 curses = dict()
 allowed_words = {}
 authors = {}
+command_dict = {
+    "/komande" : "Izlistava sve komande",
+    "/psovke" : "Izlistava sve psovke u trenutnom recniku",
+    "/obrisi" : "Brise psovku iz trenutnog recnika",
+    "/registruj" : "Dodaje rec u trenutni recnik",
+    "/Ko je najveci majmun" : "Izlistava najvece majmune",
+    "/jebaci" : "Ko je najvise puta rekao onaj sto sam te jebo"
+}
+special_events = {}
+special_counter = {}
+update_special_counter = 0
 
-forbidden_words = {'Psovkobrojac BOT', 'Psovkobrojac BOT#9107' ,'?Ko je najveci majmun', '?Коя е най-голямата маймуна?'}
-
-with open('dict_latin.txt', newline='') as csvfile:
+with open(latin_dict_file, newline='') as csvfile:
     allowed_words = [row for row in csv.reader(csvfile, delimiter=',')][0]
-with open('authors.json') as f:
+with open(authors_dict_file) as f:
     authors = json.load(f)
+with open(special_event_file, encoding='UTF-8') as f:
+    special_events = json.load(f)
+with open(special_counter_file, encoding='UTF-8') as f:
+    special_counter = json.load(f)
 
 def register_curse_words(word: str, author: str):
     if author in forbidden_words: return
@@ -53,6 +72,7 @@ def register_curse_words(word: str, author: str):
             authors[author][wrd] = 1
         else:
             authors[author][wrd] += 1
+    
     update_authors()
 
 def prepare_output() -> str:
@@ -73,55 +93,98 @@ def add_curse_words(words) -> None:
         if word in allowed_words: continue
         allowed_words.append(word)
 
-    with open('dict_latin.txt', 'w') as csvfile:
+    with open(latin_dict_file, 'w') as csvfile:
         writer = csv.writer(csvfile)
         writer.writerow(allowed_words)
 
 def remove_curse_words(words):
     for word in words:
-        allowed_words.remove(word)
+        if word in allowed_words:
+            allowed_words.remove(word)
 
 def update_authors() -> None:
-    with open('authors.json', 'w') as f:
+    with open(authors_dict_file, 'w') as f:
         f.write(str(authors).replace('\'', '\"'))
 
+commands = {
+    '/registruj'                    : '/registruj',
+    '/obrisi'                       : '/obrisi',
+    '/psovke'                       : '/psovke',
+    '/Ko je najveci majmun'         : '/izlistaj',
+    '/Коя е най-голямата маймуна?'  : '/izlistaj',          
+}
+
+def count_special_events(author: str):
+    if special_counter.get(author) is None:
+        special_counter[author] = 0
+    special_counter[author] += 1
+    global update_special_counter
+    update_special_counter += 1
+
+    if update_special_counter == 10:
+        with open(special_counter_file, 'w') as f:
+            f.write(str(special_counter).replace('\'', '\"'))
+        update_special_counter = 0
+
+async def handle_special(message: discord.message):
+    if message.content in special_events.keys():
+        count_special_events(str(message.author))
+    spec_pair = special_events[message.content.lower()]
+    out = discord.Embed(title="", description="")
+    out.add_field(name='', value=spec_pair["vid"])
+    out.set_image(url=spec_pair["img"])
+    await message.channel.send(embed=out)
 
 @bot.event
-async def on_message(message: discord.message):
-    arr = message.content.split(' ')
-    if message.content == "?Ko je najveci majmun" or message.content == '?Коя е най-голямата маймуна?':
-        message.content = 'analysis'
-        await bot.process_commands(message)
-    elif '/registruj' in arr:
-        message.content = 'added_word'
-        add_curse_words(arr[1:])
-        print(allowed_words)
-        await bot.process_commands(message)
-    elif '/obrisi' in arr:
-        remove_curse_words(arr[1:])
-        message.content = 'removed_words'
-        await bot.process_commands(message)
-    elif message.content == '/psovke':
-        message.content = 'list_words'
+async def on_message(message: discord.message):   
+    if str(message.content).startswith('/'):
         await bot.process_commands(message)
     else:
-        register_curse_words(str(message.content), str(message.author))      
+        if message.content.lower() in special_events.keys():
+            await handle_special(message)
+        register_curse_words(str(message.content), str(message.author)) 
 
-@bot.command()
-async def analysis(ctx):
-    await ctx.send(prepare_output())
+@bot.command(name='/jebaci')
+async def special_count(ctx):
+    out = discord.Embed(title="Ko je najvise onaj sto sam te jebao", description="")
+    value = ''
+    for item in special_counter.items():
+        value += '**' + item[0] + '** : ' + str(item[1]) + '\n'
+    out.add_field(name='', value=value)
+    await ctx.send(embed=out)
   
-@bot.command()
-async def added_word(ctx):
-    await ctx.send('Registrovano!')
+@bot.command(name='/komande')
+async def help(ctx):
+    out = discord.Embed(title="Komande", description="")
+    value = ''
+    for item in command_dict.items():
+        value += '**' + item[0] + '** : ' + item[1] + '\n'
+    out.add_field(name='', value=value)
+    await ctx.send(embed=out)
 
-@bot.command()
-async def removed_words(ctx):
-    await ctx.send('Obrisano!')
+@bot.command(name='/Ko')
+async def analysis(ctx, *args):
+    if args == ('je', 'najveci', 'majmun'):
+        await ctx.send(prepare_output())
+  
+@bot.command(name='/registruj')
+async def added_word(ctx, *args):
+    add_curse_words(args)
+    await ctx.send(REGISTROVANO)
 
-@bot.command()
+@bot.command(name='/obrisi')
+async def removed_words(ctx, *args):
+    remove_curse_words(args)
+    await ctx.send(OBRISANO)
+
+@bot.command(name='/psovke')
 async def list_words(ctx):
-    await ctx.send(str(allowed_words))
+    out = discord.Embed(title="Sve sto mozes da kazes bratu", description="")
+    value = ''
+    for i, word in enumerate(allowed_words):
+        value += '**' + str(i + 1) + '**. ' + word + ' '
+    out.add_field(name='', value=value)
+    await ctx.send(embed=out)
 
 def main():
     bot.run(bot_token)
