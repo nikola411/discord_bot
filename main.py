@@ -4,6 +4,7 @@ import csv
 import json
 import main
 from message import *
+import re
 
 bot_token_file = 'key.txt'
 latin_dict_file = './db/dict_latin.txt'
@@ -11,6 +12,7 @@ authors_dict_file = './db/authors.json'
 command_dict_file = './db/commands.json'
 special_event_file = './db/special_events.json'
 special_counter_file = './db/special_counter.json'
+misogyny_dict_file = './db/dict_mizogenija.txt'
 
 """ Init bot """
 
@@ -39,6 +41,8 @@ command_dict = {
 }
 special_events = {}
 special_counter = {}
+special_dict = {}
+misogyny = []
 update_special_counter = 0
 
 with open(latin_dict_file, newline='') as csvfile:
@@ -49,6 +53,8 @@ with open(special_event_file, encoding='UTF-8') as f:
     special_events = json.load(f)
 with open(special_counter_file, encoding='UTF-8') as f:
     special_counter = json.load(f)
+with open(misogyny_dict_file, newline='', encoding='UTF-8') as f:
+    misogyny = [row for row in csv.reader(f, delimiter=',')][0]
 
 register_counter = 0
 
@@ -96,7 +102,7 @@ def prepare_output() -> discord.Embed:
             data += str(author[curse])
             sum += author[curse]
 
-        data += ' ]\n'
+        data += ' ]\n\n'
         data += 'Ukupno psovki: **' + str(sum) + '**\n'
         data = '{:30}'.format(data)
         curse_cnt.append((key, sum))
@@ -132,7 +138,8 @@ commands = {
     '/obrisi'                       : '/obrisi',
     '/psovke'                       : '/psovke',
     '/Ko je najveci majmun'         : '/izlistaj',
-    '/Коя е най-голямата маймуна?'  : '/izlistaj',          
+    '/Коя е най-голямата маймуна?'  : '/izlistaj',   
+    '/mizogenija'                   : '/mizogenija'       
 }
 
 def count_special_events(author: str):
@@ -147,10 +154,16 @@ def count_special_events(author: str):
             f.write(str(special_counter).replace('\'', '\"'))
         update_special_counter = 0
 
-async def handle_special(message: discord.message):
-    if message.content in special_events.keys():
-        count_special_events(str(message.author))
+async def handle_special_message(message: discord.message):
+    count_special_events(str(message.author))
     spec_pair = special_events[message.content.lower()]
+    out = discord.Embed(title="", description="")
+    out.add_field(name='', value=spec_pair["vid"])
+    out.set_image(url=spec_pair["img"])
+    await message.channel.send(embed=out)
+
+async def handle_special_word(word, message: discord.message):
+    spec_pair = special_events[word]
     out = discord.Embed(title="", description="")
     out.add_field(name='', value=spec_pair["vid"])
     out.set_image(url=spec_pair["img"])
@@ -159,12 +172,43 @@ async def handle_special(message: discord.message):
 async def tuta_special(message: discord.message):
     msg = str(message.content).split(' ')
     do_reply = False
-    for word in ['жена', 'жене', 'жени', 'курви','курве', 'кучке']:
+    for word in misogyny:
         if word in msg:
             do_reply = True
             break
     if do_reply:
         await message.channel.send(UPOZORENJE_1)
+
+def update_misogyny(args) -> str:
+    out = MIZOGENIJA
+    if len(args) == 0:
+        out = str(misogyny)
+    else:
+        for wrd in args:
+            if wrd not in misogyny:
+                misogyny.append(wrd)
+
+        with open(misogyny_dict_file, 'w', encoding='UTF-8') as csvfile:
+            writer = csv.writer(csvfile)
+            writer.writerow(misogyny)
+
+    return out
+
+
+def register_special(args):
+    if len(args) < 3: return False
+    phrase = re.search("fraza\:(\w+)", args[0]).groups()
+    link = re.search("link\:(.*)", args[1]).groups()
+    type = re.search("tip\:(\w+)", args[2]).groups()
+
+    if phrase is None or link is None or type is None:
+        return False
+    
+    special_events[phrase[0]] = { "img" : link[0] if type[0] == "img" else "",  "vid" : link[0] if type[0] == "vid" else "",}
+
+    with open(special_event_file, 'w', encoding='UTF-8') as f:
+            f.write(str(special_events).replace('\'', '\"'))
+    return True
 
 @bot.event
 async def on_message(message: discord.message):   
@@ -172,9 +216,13 @@ async def on_message(message: discord.message):
         await bot.process_commands(message)
     else:
         if message.content.lower() in special_events.keys():
-            await handle_special(message)
+            await handle_special_message(message)
         elif str(message.author) == 'tuta6696':
             await tuta_special(message)
+        else:
+            for wrd in message.content.lower().split(' '):
+                if wrd in special_events.keys():
+                    await handle_special_word(wrd, message)
         register_curse_words(str(message.content), str(message.author)) 
 
 @bot.command(name='/jebaci')
@@ -218,6 +266,17 @@ async def list_words(ctx):
         value += '**' + str(i + 1) + '**. ' + word + ' '
     out.add_field(name='', value=value)
     await ctx.send(embed=out)
+
+@bot.command(name='/mizogenija')
+async def misogyny_event(ctx, *args):
+    out = update_misogyny(args)
+    await ctx.send(out)
+
+@bot.command(name='/specijal')
+async def special_regsiter(ctx, *args):
+    registered =  register_special(args)
+    out = 'Registrovan specijalni odgovor! :white_check_mark:' if registered else 'Neuspesan pokusaj registrovanja specijalnog dogadjaja!'
+    await ctx.send(out)
 
 def main():
     bot.run(bot_token)

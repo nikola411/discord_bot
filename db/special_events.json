@@ -1,14 +1,1 @@
-{
-    "onaj sto sam te jebo"  :   {
-        "vid" : "https://www.youtube.com/watch?v=PA170WQsL9c",
-        "img" : "https://i.ytimg.com/vi/3UC76hatcDI/maxresdefault.jpg"
-    },
-    "onaj sto sam te jebao"  :   {
-        "vid" : "https://www.youtube.com/watch?v=PA170WQsL9c",
-        "img" : "https://i.ytimg.com/vi/3UC76hatcDI/maxresdefault.jpg"
-    },
-    "онај што сам те јебо"  :   {
-        "vid" : "https://www.youtube.com/watch?v=PA170WQsL9c",
-        "img" : "https://i.ytimg.com/vi/3UC76hatcDI/maxresdefault.jpg"
-    }
-}
+{"onaj sto sam te jebo": {"vid": "https://www.youtube.com/watch?v=PA170WQsL9c", "img": "https://i.ytimg.com/vi/3UC76hatcDI/maxresdefault.jpg"}, "onaj sto sam te jebao": {"vid": "https://www.youtube.com/watch?v=PA170WQsL9c", "img": "https://i.ytimg.com/vi/3UC76hatcDI/maxresdefault.jpg"}, "онај што сам те јебо": {"vid": "https://www.youtube.com/watch?v=PA170WQsL9c", "img": "https://i.ytimg.com/vi/3UC76hatcDI/maxresdefault.jpg"}, "asdfasdf": {"img": "", "vid": "https://www.programiz.com/python-programming/online-compiler/"}}
