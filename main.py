@@ -260,12 +260,10 @@ async def removed_words(ctx, *args):
 
 @bot.command(name='/psovke')
 async def list_words(ctx):
-    out = discord.Embed(title="Sve sto mozes da kazes bratu", description="")
-    value = ''
+    out = "**Sve sto mozes da kazes bratu** \n\n"
     for i, word in enumerate(allowed_words):
-        value += '**' + str(i + 1) + '**. ' + word + ' '
-    out.add_field(name='', value=value)
-    await ctx.send(embed=out)
+        out += '**' + str(i + 1) + '**. ' + out + ' '
+    await ctx.send(out)
 
 @bot.command(name='/mizogenija')
 async def misogyny_event(ctx, *args):
