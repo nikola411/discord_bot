@@ -35,12 +35,12 @@ class Authors:
                     del self.history[author][word]
 
     def FormatOutputString(self) -> str:
-        out = '**Ko najvise psuje ovde? **\n'
+        out = '**Ko najvise psuje ovde? **\n\n'
         curse_cnt = []
         for key in self.history.keys():
             author = self.history[key]
             data = ''
-            data += 'Autor: **' + key + '**' + '\n['
+            data += '* Autor: **' + key + '**' + ' \n *  ['
             sum = 0
             for curse in author:
                 data += '  ' + curse  + ' : '
@@ -53,8 +53,8 @@ class Authors:
             curse_cnt.append((key, sum))
             out += data
 
-        # sorted_cnt = sorted(curse_cnt, key=lambda autor: autor[1], reverse=True)
-        # # out += '\nPobednik: ' + str(sorted_cnt[0][0])
+        sorted_cnt = sorted(curse_cnt, key=lambda autor: autor[1], reverse=True)
+        out += '**Pobednik:** ' + str(sorted_cnt[0][0])
         return out
     
     def UpdateDB(self):
