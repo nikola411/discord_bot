@@ -3,6 +3,7 @@ import re
 
 ACTIONS = ['msg', 'img']
 TIMESTAMP = 'vreme'
+CHANNEL_ID = 'channel_id'
 CONTENT = 'sadrzaj'
 TYPE = 'tip'
 
@@ -17,7 +18,7 @@ FIELDS = [TYPE_RE, CONTENT_RE, TIMESTAMP_RE]
 class Schedule:
     scheduled = []
 
-    def AddScheduledEvent(self, words: list) -> bool:
+    def AddScheduledEvent(self, words: list, channel_id: int) -> bool:
         input = ' '.join(words)
         entry = {}
 
@@ -39,6 +40,7 @@ class Schedule:
         time = (now.hour, now.minute, now.second) if time_capture is None else time_capture.groups()
                
         entry[TIMESTAMP] = datetime(int(date[2]), int(date[1]), int(date[0]), int(time[0]), int(time[1]), int(time[2]))
+        entry[CHANNEL_ID] = channel_id
         self.scheduled.append(entry)
         return True
 
