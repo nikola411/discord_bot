@@ -1,2 +1,14 @@
 ./key
 ./__pycache__
+./.vscode
+./.pytest_cache
+./test_everything.py
+./Commands/Authors/__pycache__
+./Commands/CurseWords/__pycache__
+./Commands/Custom/__pycache__
+./Commands/Authors/__pycache__
+./Commands/Scheduled/__pycache__
+./Commands/Authors/authors_history.json
+./Commands/CurseWords/dict_latin.txt
+./Commands/Custom/custom_for_all.json
+./Commands/Custom/custom_for_one.json
