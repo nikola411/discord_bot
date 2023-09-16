@@ -34,7 +34,7 @@ class Custom:
         if words[0] != ADD and words[0] != REMOVE: return False
         
         entry = {AUTHOR: None, PHRASE: None, TYPE: None, LINK: None, TITLE: None}
-        args = ' '.join(words[1:])
+        args = ' '.join(words[1:]).lower()
 
         for reg in self.CAPTURES:
             catch = re.search(reg, args)
@@ -53,7 +53,8 @@ class Custom:
             else self.AddCustomEventSingle(entry)
         
     def CheckForCustomEventAll(self, words: list) -> dict:
-        specials = [word for word in words if word in self.custom_events_all.keys()]
+        specials = [word.lower() for word in words if word in self.custom_events_all.keys()]
+        specials.append(' '.join(words).lower())
         if len(specials) is 0: 
             return None
         return [value for key, value in self.custom_events_all.items() if key in specials]
@@ -61,6 +62,8 @@ class Custom:
     def CheckForCustomEventSingle(self, author: str, words: list) -> dict:
         if author not in self.custom_events_one:
             return None
+        specials = [word.lower() for word in words if word in self.custom_events_one[author].keys()]
+        specials.append(' '.join(words).lower())
         return [value for key, value in self.custom_events_one[author].items() if key in words]
 
     def AddCustomEventGeneral(self, entry: dict) -> bool:

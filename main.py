@@ -6,8 +6,13 @@ import re
 from Commands.Authors.authors import Authors
 from Commands.CurseWords.curses import Curses
 from Commands.Custom.custom import Custom, TYPE, AUTHOR, LINK, TITLE, PHRASE, REMOVE
+from Commands.Scheduled.scheduled import Schedule
+
+from datetime import datetime
+from Commands.Scheduled.scheduled import ACTIONS, TIMESTAMP, CONTENT, TYPE, CHANNEL_ID
 
 BOT_TOKEN_FILE = './key'
+ADMINS = ['nikola411', '.mokosha', 'chewdlaka']
 
 with open(BOT_TOKEN_FILE) as keyfile:
     bot_token = keyfile.read()
@@ -21,18 +26,16 @@ bot = commands.Bot(command_prefix='', description=description, intents=intents)
 curses = Curses()
 authors = Authors()
 custom = Custom()
+schedule = Schedule()
 
 command_set = {
-    '/Ko je najveci majmun' : 'Izlistaj sve ljude koji su psovali na serveru.',
-    '/psovke' : 'Izlistaj sve psovke iz recnika psovki na osnovu koga se broji psovanje.',
-    '/registruj' : 'Dodaj psovku u recnik psovki.',
-    '/obrisi' : 'Obrisi psovku iz recnika.',
-    '/komande' : 'Pokazuje sve dostupne komande.',
-    '/custom' : 'Dodaj custom dogadjaj. Custom dogadjaji su odgovori koje ce BOT da posalje kada neko napise nesto.\n\
-    * primer: /custom dodaj fraza=[vucic] tip=[img] link=[http://jebac.com]\n\
-        svaki put kad neko napise vucic, bot ce odgovoriti sa slikom koja je zakacena u linku.\n\n\
-    * /custom dodaj **fraza**=[fraza na koju bot reaguje] **tip**=[img|msg] **link**=[link do slike] **naslov**=[bilo koji naslov]\n\n\
-    * /custom obrisi **fraza**=[fraza na koju bot vise nece da reaguje]'
+    '**/Ko je najveci majmun**' : 'Izlistaj sve ljude koji su psovali na serveru.',
+    '**/psovke**' : 'Izlistaj sve psovke iz recnika psovki na osnovu koga se broji psovanje.',
+    '**/registruj**' : 'Dodaj psovku u recnik psovki.',
+    '**/obrisi**' : 'Obrisi psovku iz recnika.',
+    '**/komande**' : 'Pokazuje sve dostupne komande.',
+    '**/zakazi**' : 'Zakazi slanje poruke ili slike.\n \
+        * /zakazi tip=[img|msg] sadrzaj=[link ili sadrzaj poruke] vreme=[DD.MM.YYYY HH:MM:SS]'
 } 
 
 def MakeEmbed(packet: dict) -> discord.Embed:
@@ -46,8 +49,13 @@ def MakeEmbed(packet: dict) -> discord.Embed:
 
     return out
 
+channelFrom = None
+
 @bot.event
 async def on_message(message: discord.message):
+    global channelFrom
+    channelFrom = message.channel.id
+
     content = str(message.content).split(' ')
     author = str(message.author)
 
@@ -98,29 +106,56 @@ async def register_curse_word(ctx):
 
 @bot.command(name='/custom')
 async def register_custom(ctx, *args):
-    ret = custom.ProcessCommand(args)
-    action = 'obrisan' if args[0] == REMOVE else 'dodat'
+    if str(ctx.author) in ADMINS:
+        ret = custom.ProcessCommand(args)
+        action = 'obrisan' if args[0] == REMOVE else 'dodat'
+        out = ''
+        if ret:
+            out = 'Uspesno ' + action + ' custom dogadjaj! :white_check_mark:'
+        else:
+            out = 'Neuspesan pokusaj!'
+        await ctx.send(out)
+
+@bot.command(name='/zakazi')
+async def schedule_event(ctx, *args):
+    ret = schedule.AddScheduledEvent(args, int(channelFrom))
     out = ''
     if ret:
-        out = 'Uspesno ' + action + ' custom dogadjaj! :white_check_mark:'
+        out = 'Uspesno zakazana akcija dogadjaj! :white_check_mark:'
     else:
         out = 'Neuspesan pokusaj!'
-    await ctx.send(out)
+    await ctx.send(out)    
 
-@tasks.loop(minutes=30)
+lastDbUpdate = None
+
+@tasks.loop(seconds=1)
 async def task_loop():
-    curses.UpdateDB()
-    authors.UpdateDB()
-    custom.UpdateDB()
-    print('Updating..')
-
+    global lastDbUpdate
+    if lastDbUpdate is None:
+        lastDbUpdate = datetime.now()
+    
+    if (datetime.now() - lastDbUpdate).total_seconds() > 30 * 60:
+        lastDbUpdate = datetime.now()
+        curses.UpdateDB()
+        authors.UpdateDB()
+        custom.UpdateDB()
+        print('Updating..')
+    
+    scheduled = schedule.GetExpired()
+    for event in scheduled:
+        title = '' if event[TYPE] == 'img' else event[CONTENT]
+        out = discord.Embed(title=title, description='')
+        if event[TYPE] == 'img':
+            out.set_image(url=event[CONTENT])
+        channel = bot.get_channel(event[CHANNEL_ID])
+        await channel.send(embed=out)
+   
 @bot.event
 async def on_ready():
     task_loop.start()
 
 def main():
     bot.run(bot_token)
-
 
 if __name__ == "__main__":
     main()
