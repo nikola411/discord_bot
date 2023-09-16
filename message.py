@@ -1,5 +1,0 @@
-REGISTROVANO = 'Registrovano! :white_check_mark:'
-OBRISANO = 'Obrisano! :white_check_mark:'
-MIZOGENIJA = 'Mizogeni recnik je azuriran! :white_check_mark:'
-UPOZORENJE_1 = 'Buraz, policija za male pise je blizu... pazi se!'
-UPOZORENJE_2 = 'Da gospodine policajce, ovaj komentar ovde!' 
