@@ -16,7 +16,7 @@ class Custom:
     CUSTOM_EVENTS_FOR_ONE = './Commands/Custom/custom_for_one.json'
 
     AUTHOR_RE = r'(autor)\=\[([^\]]+)\]'
-    PHRASE_RE = r'(fraza)\=\[([a-z A-Z 0-9 \!\?\.]+)\]'
+    PHRASE_RE = r'(fraza)\=\[([^\]+)\]'
     TYPE_RE = r'(tip)\=\[(img|msg|vid)\]'
     LINK_RE = r'(link)\=\[([^\]]+)\]'
     TITLE_RE = r'(naslov)\=\[([\w \!\?\.]+)\]'
