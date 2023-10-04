@@ -2,6 +2,8 @@ import discord
 from discord.ext import commands
 from discord.ext import tasks
 import re
+import os
+import logging
 
 from Commands.Authors.authors import Authors
 from Commands.CurseWords.curses import Curses
@@ -23,6 +25,8 @@ intents.message_content = True
 
 bot = commands.Bot(command_prefix='', description=description, intents=intents)
 
+logger = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
+
 curses = Curses()
 authors = Authors()
 custom = Custom()
@@ -31,8 +35,8 @@ schedule = Schedule()
 command_set = {
     '**/Ko je najveci majmun**' : 'Izlistaj sve ljude koji su psovali na serveru.',
     '**/psovke**' : 'Izlistaj sve psovke iz recnika psovki na osnovu koga se broji psovanje.',
-    '**/registruj**' : 'Dodaj psovku u recnik psovki.',
-    '**/obrisi**' : 'Obrisi psovku iz recnika.',
+    '**/registruj**' : 'Dodaj psovku u recnik.',
+    '**/obrisi**' : 'Obrisi psovku iz recnika psovki kitakitakita.',
     '**/komande**' : 'Pokazuje sve dostupne komande.',
     '**/zakazi**' : 'Zakazi slanje poruke ili slike.\n \
         * /zakazi tip=[img|msg] sadrzaj=[link ili sadrzaj poruke] vreme=[DD.MM.YYYY HH:MM:SS]'
@@ -124,7 +128,16 @@ async def schedule_event(ctx, *args):
         out = 'Uspesno zakazana akcija dogadjaj! :white_check_mark:'
     else:
         out = 'Neuspesan pokusaj!'
-    await ctx.send(out)    
+    await ctx.send(out)
+
+shouldUpdate = False
+
+@bot.command(name='/azuriraj')
+async def update_bot_code(ctx, *args):
+    global shouldUpdate
+    shouldUpdate = True
+
+    await bot.close()
 
 lastDbUpdate = None
 
@@ -155,7 +168,10 @@ async def on_ready():
     task_loop.start()
 
 def main():
-    bot.run(bot_token)
+    bot.run(token=bot_token, log_handler=logger)
+    if shouldUpdate:
+        os.system('git pull')
+        os.system('nohup python3 main.py &')
 
 if __name__ == "__main__":
     main()

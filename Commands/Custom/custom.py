@@ -16,10 +16,10 @@ class Custom:
     CUSTOM_EVENTS_FOR_ONE = './Commands/Custom/custom_for_one.json'
 
     AUTHOR_RE = r'(autor)\=\[([^\]]+)\]'
-    PHRASE_RE = r'(fraza)\=\[([^\]+)\]'
+    PHRASE_RE = r'(fraza)\=\[([^\]]+)\]'
     TYPE_RE = r'(tip)\=\[(img|msg|vid)\]'
     LINK_RE = r'(link)\=\[([^\]]+)\]'
-    TITLE_RE = r'(naslov)\=\[([\w \!\?\.]+)\]'
+    TITLE_RE = r'(naslov)\=\[([^\]]+)\]'
 
     CAPTURES = [AUTHOR_RE, PHRASE_RE, TYPE_RE, LINK_RE, TITLE_RE]
 
@@ -55,7 +55,7 @@ class Custom:
     def CheckForCustomEventAll(self, words: list) -> dict:
         specials = [word.lower() for word in words if word in self.custom_events_all.keys()]
         specials.append(' '.join(words).lower())
-        if len(specials) is 0: 
+        if len(specials) == 0: 
             return None
         return [value for key, value in self.custom_events_all.items() if key in specials]
     
