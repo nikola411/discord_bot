@@ -130,6 +130,7 @@ async def schedule_event(ctx, *args):
         out = 'Neuspesan pokusaj!'
     await ctx.send(out)
 
+# never touch this code, bot will die if this is not executed correctly
 shouldUpdate = False
 
 @bot.command(name='/azuriraj')
@@ -138,6 +139,7 @@ async def update_bot_code(ctx, *args):
     shouldUpdate = True
 
     await bot.close()
+#end of critical code
 
 lastDbUpdate = None
 
@@ -169,9 +171,12 @@ async def on_ready():
 
 def main():
     bot.run(token=bot_token, log_handler=logger)
+
+    # never touch this code, bot will die if this is not executed correctly
     if shouldUpdate:
         os.system('git pull')
         os.system('nohup python3 main.py &')
-
+    #end of critical code
+    
 if __name__ == "__main__":
     main()
