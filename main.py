@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 from discord.ext import tasks
-import re
+import requests
 import os
 import logging
 
@@ -39,8 +39,11 @@ command_set = {
     '**/obrisi**' : 'Obrisi psovku iz recnika psovki kitakitakita.',
     '**/komande**' : 'Pokazuje sve dostupne komande.',
     '**/zakazi**' : 'Zakazi slanje poruke ili slike.\n \
-        * /zakazi tip=[img|msg] sadrzaj=[link ili sadrzaj poruke] vreme=[DD.MM.YYYY HH:MM:SS]'
+        * /zakazi tip=[img|msg] sadrzaj=[link ili sadrzaj poruke] vreme=[DD.MM.YYYY HH:MM:SS]',
+    '**/meme**' : 'Nalazi random meme.'
 } 
+
+MEME_API_ENDPOINT = 'https://meme-api.com/gimme'
 
 def MakeEmbed(packet: dict) -> discord.Embed:
     title = ''
@@ -125,6 +128,15 @@ async def register_custom(ctx, *args):
                 out = 'Neuspesan pokusaj!'
 
         await ctx.send(out)
+
+@bot.command(name='/meme')
+async def get_meme(ctx):
+    response = requests.get(MEME_API_ENDPOINT).json()
+
+    out = discord.Embed(title=response["title"], description="")
+    out.set_image(url=response["url"])
+
+    await ctx.send(embed=out)
 
 @bot.command(name='/zakazi')
 async def schedule_event(ctx, *args):
