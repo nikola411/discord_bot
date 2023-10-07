@@ -94,9 +94,9 @@ async def list_all(ctx, *args):
 
 @bot.command(name='/obrisi')
 async def delete_curse_word(ctx, *args):
-    deleted = curses.RemoveCurseWords(*args)
+    deleted = curses.RemoveCurseWords(args)
     if deleted is True:
-        authors.DeleteFromHistory(*args)
+        authors.DeleteFromHistory(args)
     await ctx.send("Obrisano! :white_check_mark:" if deleted else "Neuspesno brisanje! Rec nije u recniku!")
 
 @bot.command(name='/registruj')

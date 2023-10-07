@@ -175,11 +175,14 @@ class Custom:
     def PrintCustomCommands(self, command_type: str) -> str:
         out = ''
         if command_type == SPECIAL:
-            out = str(self.custom_events_one)
+            for key, value in self.custom_events_one.items():
+                out += key + ' : ' + str(value).replace('{', '[').replace('}', ']') + '\n'
         elif command_type == GENERAL:
-            out = str(self.custom_events_all)
+            for key, value in self.custom_events_all.items():
+                out += key + ' : ' + str(value).replace('{', '[').replace('}', ']') + '\n'
         elif command_type == REGEX:
-            out = str(self.custom_events_regex)
+            for key, value in self.custom_events_regex.items():
+                out += key + ' : ' + str(value).replace('{', '[').replace('}', ']') + '\n'
         else:
             out = 'Pogresan argument! Opcije: general, regex i autor'
         
