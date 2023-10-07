@@ -46,7 +46,7 @@ class Custom:
         if words[0] != ADD and words[0] != REMOVE: return False
         
         entry = {AUTHOR: None, PHRASE: None, TYPE: None, LINK: None, TITLE: None, REGEX: None}
-        args = ' '.join(words[1:]).lower()
+        args = ' '.join(words[1:])
 
         for reg in self.CAPTURES:
             catch = re.search(reg, args)
@@ -55,8 +55,11 @@ class Custom:
                 entry[catch[0]] = catch[1]
 
         if words[0] == REMOVE:
-            return self.RemoveCustomEventGeneral(entry[PHRASE]) if entry[AUTHOR] is None \
-                else self.RemoveCustomEventSingle(entry[AUTHOR], entry[PHRASE])
+            if words[1] == REGEX:
+                return self.RemoveCustomEventRegex(entry[AUTHOR], entry[REGEX])
+            else:
+                return self.RemoveCustomEventGeneral(entry[PHRASE]) if entry[AUTHOR] is None \
+                    else self.RemoveCustomEventSingle(entry[AUTHOR], entry[PHRASE])
         
         if entry[LINK] is None and entry[TITLE] is None: return False
 
@@ -107,7 +110,7 @@ class Custom:
         prepared[TYPE] = entry[TYPE]
         prepared[TITLE] = '' if entry.get(TITLE) is None else entry[TITLE]
 
-        self.custom_events_all[entry[PHRASE]] = prepared
+        self.custom_events_all[entry[PHRASE].lower()] = prepared
         return True
 
     def AddCustomEventSingle(self, entry: dict) -> bool:
@@ -125,7 +128,7 @@ class Custom:
         prepared[TYPE] = entry[TYPE]
         prepared[TITLE] = '' if entry.get(TITLE) is None else entry[TITLE]
         
-        self.custom_events_one[entry[AUTHOR]][entry[PHRASE]] = prepared
+        self.custom_events_one[entry[AUTHOR]][entry[PHRASE].lower()] = prepared
         return True
     
     def AddCustomEventRegex(self, entry: dict) -> bool:
