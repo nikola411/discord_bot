@@ -7,7 +7,7 @@ import logging
 
 from Commands.Authors.authors import Authors
 from Commands.CurseWords.curses import Curses
-from Commands.Custom.custom import Custom, TYPE, AUTHOR, LINK, TITLE, PHRASE, REMOVE
+from Commands.Custom.custom import Custom, TYPE, AUTHOR, LINK, TITLE, PHRASE, REMOVE, LIST
 from Commands.Scheduled.scheduled import Schedule
 
 from datetime import datetime
@@ -94,9 +94,10 @@ async def list_all(ctx, *args):
 
 @bot.command(name='/obrisi')
 async def delete_curse_word(ctx, *args):
-    curses.RemoveCurseWords(*args)
-    authors.DeleteFromHistory(*args)
-    await ctx.send("Obrisano! :white_check_mark:")
+    deleted = curses.RemoveCurseWords(*args)
+    if deleted is True:
+        authors.DeleteFromHistory(*args)
+    await ctx.send("Obrisano! :white_check_mark:" if deleted else "Neuspesno brisanje! Rec nije u recniku!")
 
 @bot.command(name='/registruj')
 async def register_curse_word(ctx, *args):
@@ -111,13 +112,18 @@ async def register_curse_word(ctx):
 @bot.command(name='/custom')
 async def register_custom(ctx, *args):
     if str(ctx.author) in ADMINS:
-        ret = custom.ProcessCommand(args)
-        action = 'obrisan' if args[0] == REMOVE else 'dodat'
         out = ''
-        if ret:
-            out = 'Uspesno ' + action + ' custom dogadjaj! :white_check_mark:'
-        else:
-            out = 'Neuspesan pokusaj!'
+        if args[0] == LIST:
+            out = custom.PrintCustomCommands(args[1])
+        elif args[0]:
+            ret = custom.ProcessCommand(args)
+            action = 'obrisan' if args[0] == REMOVE else 'dodat'
+        
+            if ret:
+                out = 'Uspesno ' + action + ' custom dogadjaj! :white_check_mark:'
+            else:
+                out = 'Neuspesan pokusaj!'
+
         await ctx.send(out)
 
 @bot.command(name='/zakazi')

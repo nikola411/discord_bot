@@ -18,9 +18,13 @@ class Curses:
                 self.allowed_words.append(word)
 
     def RemoveCurseWords(self, words: list) -> None:
+        deleted = False
         for word in words:
             if word in self.allowed_words:
                 self.allowed_words.remove(word)
+                deleted = True
+
+        return deleted
 
     def CheckIfCursing(self, words: list) -> list:
         return [word for word in words if word in self.allowed_words]

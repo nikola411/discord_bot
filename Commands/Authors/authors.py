@@ -2,7 +2,7 @@ import json
 
 class Authors:
     history = {}
-    doNotScan = ['Psovkobrojac BOT#9107', 'Psovkobrojac BOT']
+    doNotScan = ['Psovkobrojac BOT#9107', 'Psovkobrojac BOT', 'BOG#9107']
     AUTHORS_HISTORY_FILE = './Commands/Authors/authors_history.json'
 
 

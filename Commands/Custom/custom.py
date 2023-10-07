@@ -9,6 +9,9 @@ TITLE = 'naslov'
 ADD = 'dodaj'
 REMOVE = 'obrisi'
 REGEX = 'regex'
+LIST = 'izlistaj'
+SPECIAL = 'autor'
+GENERAL = 'general'
 
 ALLOWED_TYPES = ['img', 'vid', 'msg']
 
@@ -169,6 +172,19 @@ class Custom:
         del self.custom_events_regex[author][word]
         return True
     
+    def PrintCustomCommands(self, command_type: str) -> str:
+        out = ''
+        if command_type == SPECIAL:
+            out = str(self.custom_events_one)
+        elif command_type == GENERAL:
+            out = str(self.custom_events_all)
+        elif command_type == REGEX:
+            out = str(self.custom_events_regex)
+        else:
+            out = 'Pogresan argument! Opcije: general, regex i autor'
+        
+        return out
+
     def UpdateDB(self):
         with open(self.CUSTOM_EVENTS_FOR_ALL, 'w', encoding='UTF-8') as f:
             f.write(str(self.custom_events_all).replace('\'', '\"'))
