@@ -43,7 +43,7 @@ command_set = {
     '**/meme**' : 'Nalazi random meme.'
 } 
 
-MEME_API_ENDPOINT = 'https://meme-api.com/gimme'
+MEME_API_ENDPOINT = 'https://meme-api.com/gimme/shitposting'
 
 def MakeEmbed(packet: dict) -> discord.Embed:
     title = ''
