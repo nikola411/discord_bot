@@ -66,17 +66,17 @@ async def on_message(message: discord.message):
     if content[0].startswith('/'):
         await bot.process_commands(message)
     else:
-        isCustomSingle = custom.CheckForCustomEventSingle(author, content)
-        if isCustomSingle is not None:
-            for event in isCustomSingle:
+        customEvents = None
+        customEvents = custom.CheckForCustomEventSingle(author, content)
+        if customEvents is None:
+            customEvents = custom.CheckForCustomEventRegex(author, content)
+        if customEvents is None:
+            customEvents = custom.CheckForCustomEventAll(content)
+
+        if customEvents is not None:
+            for event in customEvents:
                 response = MakeEmbed(event)
                 await message.channel.send(embed=response)
-        else:
-            isCustomGeneral = custom.CheckForCustomEventAll(content)
-            if isCustomGeneral is not None:
-                for event in isCustomGeneral:
-                    response = MakeEmbed(event)
-                    await message.channel.send(embed=response)
 
         authors.RegisterAuthorCursing(author, curses.CheckIfCursing(content))
 
@@ -170,7 +170,7 @@ async def on_ready():
     task_loop.start()
 
 def main():
-    bot.run(token=bot_token, log_handler=logger)
+    bot.run(token=bot_token)
 
     # never touch this code, bot will die if this is not executed correctly
     if shouldUpdate:
