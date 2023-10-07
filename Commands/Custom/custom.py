@@ -173,19 +173,21 @@ class Custom:
         return True
     
     def PrintCustomCommands(self, command_type: str) -> str:
-        out = ''
+        out = ' '
         if command_type == SPECIAL:
             for key, value in self.custom_events_one.items():
-                out += key + ' : ' + str(value).replace('{', '[').replace('}', ']') + '\n'
+                out += key + ' : ' + str([key for key in value.keys()]) + '\n'
         elif command_type == GENERAL:
-            for key, value in self.custom_events_all.items():
-                out += key + ' : ' + str(value).replace('{', '[').replace('}', ']') + '\n'
+            out += str([key for key in self.custom_events_all.keys()]) + '\n'
         elif command_type == REGEX:
-            for key, value in self.custom_events_regex.items():
-                out += key + ' : ' + str(value).replace('{', '[').replace('}', ']') + '\n'
+            for key, value in self.custom_events_one.items():
+                out += key + ' : ' + str([key for key in value.keys()]) + '\n'
         else:
             out = 'Pogresan argument! Opcije: general, regex i autor'
         
+        if out == ' ':
+            out = 'Nema podataka u bazi.'
+            
         return out
 
     def UpdateDB(self):
