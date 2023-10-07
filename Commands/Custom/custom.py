@@ -180,14 +180,14 @@ class Custom:
         elif command_type == GENERAL:
             out += str([key for key in self.custom_events_all.keys()]) + '\n'
         elif command_type == REGEX:
-            for key, value in self.custom_events_one.items():
+            for key, value in self.custom_events_regex.items():
                 out += key + ' : ' + str([key for key in value.keys()]) + '\n'
         else:
             out = 'Pogresan argument! Opcije: general, regex i autor'
         
         if out == ' ':
             out = 'Nema podataka u bazi.'
-            
+
         return out
 
     def UpdateDB(self):
