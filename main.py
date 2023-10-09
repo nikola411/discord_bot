@@ -129,7 +129,7 @@ async def register_custom(ctx, *args):
 
         await ctx.send(out)
 
-@bot.command(name='/meme')
+@bot.command(name='meme')
 async def get_meme(ctx):
     response = requests.get(MEME_API_ENDPOINT).json()
 
@@ -188,8 +188,7 @@ async def on_ready():
     task_loop.start()
 
 def main():
-    bot.add_command(get_meme)
-    bot.add_command(schedule_event)
+    bot.add_command('meme')
     bot.run(token=bot_token)
 
     # never touch this code, bot will die if this is not executed correctly
