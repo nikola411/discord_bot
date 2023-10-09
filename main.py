@@ -188,6 +188,8 @@ async def on_ready():
     task_loop.start()
 
 def main():
+    bot.add_command(get_meme)
+    bot.add_command(schedule_event)
     bot.run(token=bot_token)
 
     # never touch this code, bot will die if this is not executed correctly
