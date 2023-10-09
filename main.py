@@ -23,7 +23,8 @@ intents = discord.Intents.default()
 intents.members = True
 intents.message_content = True
 
-bot = commands.Bot(command_prefix='', description=description, intents=intents)
+bot = commands.Bot(command_prefix='/', description=description, intents=intents)
+
 
 logger = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
 
@@ -83,36 +84,36 @@ async def on_message(message: discord.message):
 
         authors.RegisterAuthorCursing(author, curses.CheckIfCursing(content))
 
-@bot.command(name='/komande')
+@bot.command(name='komande')
 async def help(ctx):
     out = discord.Embed(title='Komande', description="")
     for key, value in command_set.items():
         out.add_field(name=key, value=value, inline=False)
     await ctx.send(embed=out)
 
-@bot.command(name='/Ko')
+@bot.command(name='Ko')
 async def list_all(ctx, *args):
     if args == ('je', 'najveci', 'majmun'):
         await ctx.send(authors.FormatOutputString())
 
-@bot.command(name='/obrisi')
+@bot.command(name='obrisi')
 async def delete_curse_word(ctx, *args):
     deleted = curses.RemoveCurseWords(args)
     if deleted is True:
         authors.DeleteFromHistory(args)
     await ctx.send("Obrisano! :white_check_mark:" if deleted else "Neuspesno brisanje! Rec nije u recniku!")
 
-@bot.command(name='/registruj')
+@bot.command(name='registruj')
 async def register_curse_word(ctx, *args):
     curses.AddAllowedWords(args)
     await ctx.send("Uspesno registrovano!  :white_check_mark:")
 
-@bot.command(name='/psovke')
+@bot.command(name='psovke')
 async def register_curse_word(ctx):
     curse_list = curses.PrepareOutput()
     await ctx.send(curse_list)
 
-@bot.command(name='/custom')
+@bot.command(name='custom')
 async def register_custom(ctx, *args):
     if str(ctx.author) in ADMINS:
         out = ''
@@ -138,7 +139,7 @@ async def get_meme(ctx):
 
     await ctx.send(embed=out)
 
-@bot.command(name='/zakazi')
+@bot.command(name='zakazi')
 async def schedule_event(ctx, *args):
     ret = schedule.AddScheduledEvent(args, int(channelFrom))
     out = ''
@@ -151,7 +152,7 @@ async def schedule_event(ctx, *args):
 # never touch this code, bot will die if this is not executed correctly
 shouldUpdate = False
 
-@bot.command(name='/azuriraj')
+@bot.command(name='azuriraj')
 async def update_bot_code(ctx, *args):
     global shouldUpdate
     shouldUpdate = True
@@ -187,14 +188,18 @@ async def task_loop():
 async def on_ready():
     task_loop.start()
 
-def main():
-    bot.add_command('meme')
-    bot.run(token=bot_token)
+def update():
+    curses.UpdateDB()
+    authors.UpdateDB()
+    custom.UpdateDB()
+    os.system('git pull')
+    os.system('nohup python3 main.py &')
 
+def main():
+    bot.run(token=bot_token)
     # never touch this code, bot will die if this is not executed correctly
     if shouldUpdate:
-        os.system('git pull')
-        os.system('nohup python3 main.py &')
+        update()
     #end of critical code
     
 if __name__ == "__main__":
